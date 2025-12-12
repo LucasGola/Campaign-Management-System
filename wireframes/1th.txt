@@ -1,0 +1,165 @@
+# Wireframes & User Flows — Sistema T20 (MVP)
+
+> Documento inicial com wireframes, fluxos de usuário e notas responsivas. Confira e, quando quiser, eu gero a **estrutura de pastas** seguida pelo **schema do banco (Supabase)**.
+
+---
+
+## Visão geral do MVP (recapitulando rápido)
+
+* Autenticação de usuários
+* Criação de campanhas (qualquer usuário cria e convida via link)
+* Criação de fichas (fichas podem existir fora de campanhas e depois serem associadas)
+* Visualização/edição de fichas: autor e mestre podem editar; jogadores só veem suas próprias fichas
+* Sistema T20 completo por trás (regras, atributos, perícias, magias, combate) — mas a UI inicial foca gerenciamento e fluxo de jogo.
+
+---
+
+## Principais telas / páginas
+
+1. Landing / Entrar (Auth)
+2. Dashboard do usuário (meu perfil, campanhas, fichas rápidas)
+3. Biblioteca de Fichas (lista de fichas do usuário, criar/editar)
+4. Page de Campanha (painel da campanha: jogadores, fichas vinculadas, notas do mestre, log)
+5. Tela de Ficha (view + edit — modo leitura/edição)
+6. Modal/Fluxo de Convite (criar link, copiar, revogar)
+7. Rolador / Log de rolagens (global da campanha)
+8. Configurações da campanha (permissões, juntar campanhas, múltiplos mestres)
+
+---
+
+## Wireframes (desktop e mobile) — esboço textual e layout
+
+### 1) Landing / Auth
+
+* Desktop: cabeçalho simples (logo à esquerda). Card central com:
+
+  * Botões: "Entrar com e-mail (magic link)" / "Criar conta"
+  * Links: Termos / Ajuda
+* Mobile: card ocupa quase toda a tela, botão grande de "Entrar com e-mail" e texto explicativo pequeno.
+
+**Estados**: erro de login, link enviado (toast), verificando sessão.
+
+---
+
+### 2) Dashboard do usuário
+
+* Desktop: 3 colunas (resposive: vira 1 coluna no mobile)
+
+  * Coluna 1 — Atalhos: "Criar campanha", "Criar ficha", filtros rápidos
+  * Coluna 2 — Minhas Campanhas (cards): cada card mostra nome, status, número de jogadores e botão "Abrir"
+  * Coluna 3 — Minhas Fichas (lista compacta), botão rápido para anexar a campanha
+* Mobile: lista vertical; cada card expansível (tap abre ações rápidas)
+
+**Interações-chave**: arrastar/arrastar é desnecessário no MVP — usar menus de contexto.
+
+---
+
+### 3) Biblioteca de Fichas
+
+* Layout: tabela/grade com fichas do usuário. Cada ficha mostra: nome, sistema (T20), nível, tags, último uso.
+* Ações por ficha: Editar, Duplicar, Excluir, Vincular a campanha (dropdown com campanhas do usuário), Tornar pública (não por agora).
+* Mobile: cards empilhados com ações em menu "⋯".
+
+**Nota**: fichas criadas sem campanha ficam como "Privadas — não vinculadas" até o usuário anexar.
+
+---
+
+### 4) Página da Campanha
+
+* Desktop (grid de 2 colunas):
+
+  * Coluna esquerda (60%): Área principal — aba selecionável (Visão Geral / Mapa *futuro* / Encontros)
+
+    * Visão Geral: feed com log de rolagens, notas do mestre, sessão agendada
+  * Coluna direita (40%): Barra lateral — lista de jogadores com fichas anexadas, botão para convidar (gerar link), opções do mestre
+* Mobile: top tabs (Visão / Jogadores / Notas). Lista de jogadores abaixo.
+
+**Permissões**: apenas mestres veem botão "Editar qualquer ficha". Jogadores veem apenas sua(s) ficha(s) e botões limitados.
+
+---
+
+### 5) Tela de Ficha (view + edit)
+
+* Header: Nome da ficha, ícone do jogador (avatar), nível, classe
+* Aba esquerda (coluna fina): Atributos (Força, Destreza...), breve visual
+* Área central: detalhes (perícias, habilidades, magias, inventário). Cada seção colapsável.
+* Aba direita (coluna fina): ações rápidas (rolar Atributo, Rolar Perícia, Consumir item)
+
+**Modos**:
+
+* **View** — se você não for o dono nem mestre, itens sensíveis ocultos (ex.: perícias secretas). Jogadores não veem fichas de outros jogadores.
+* **Edit** — formulário com validação (React Hook Form). Salvar rascunho local antes de enviar.
+
+**Mobile**: transformado em seções empilhadas; ações em FAB (floating action button).
+
+---
+
+### 6) Modal/Fluxo de Convite
+
+* Ao criar link: modal com URL curta (e botão copiar), opção de expirar em X dias e limite de usos.
+* Na campanha: histórico de links gerados e botão "Revogar".
+
+**Segurança**: links devem conter token UUID curto; rotas aceitam token para associação sem criar conta (flow: entrar/criar conta para confirmar identidade) — mas, por simplicidade MVP, exigir login antes de aceitar convite é aceitável.
+
+---
+
+## Fluxos de usuário críticos (detalhados)
+
+### Fluxo A — Criar ficha e vincular a campanha
+
+1. Usuário vai em "Criar ficha" > preenche dados básicos > salva (ficheiro aparece na Biblioteca)
+2. Usuário abre a campanha > "Vincular ficha" > seleciona uma das fichas da Biblioteca
+3. Ficha agora aparece na lista de jogadores da campanha (visível ao mestre + dono)
+
+### Fluxo B — Convidar e aceitar convite
+
+1. Criador gera link de convite (opcional: expiração/usos)
+2. Convidado recebe link > exige login ou criação de conta via magic link
+3. Após login, um modal permite aceitar convite e entrar na campanha
+
+### Fluxo C — Mestre editar ficha de jogador
+
+1. Mestre abre a campanha > abre ficha vinculada > botão "Editar como mestre"
+2. Mudanças salvas são registradas no log de alterações (audit trail simplificado)
+
+---
+
+## Componentes UI principais
+
+* Layout (Header, Footer, Container responsivo)
+* Card de Campanha, Card de Ficha
+* Tabela/Lista responsiva
+* Modal (convite, criar ficha, confirmação)
+* FAB (mobile)
+* Formulários complexos (React Hook Form + validações)
+* Toasts/Alerts
+
+---
+
+## Considerações Responsivas
+
+* Mobile-first: UI deve ter touch targets mínimos (44px), menus ocultos em hambúrguer
+* Grade vira listagem simples; colunas viram abas/accordions
+* Performance: carregar só o necessário (lazy-load fichas pesadas, imagens)
+
+---
+
+## Acessibilidade & Segurança (nota rápida)
+
+* Usar labels, roles ARIA em formulários
+* Permissões no backend (Supabase Row-Level Security) para garantir que jogadores não leiam fichas alheias
+* Rate-limit para geração de links e endpoints de convite
+
+---
+
+## Próximos passos (conforme seu pedido)
+
+1. **Estrutura de pastas** para Next.js + Tailwind + Supabase — pronta para gerar.
+2. **Schema inicial do Supabase** (tabelas: users (auth via supabase), campaigns, campaign_members, characters, character_versions, invite_links, rolls, logs).
+3. Gerar componentes React iniciais (Landing, Dashboard, Biblioteca de Fichas, Página de Campanha, Tela de Ficha).
+
+---
+
+Se quiser que eu já gere a **estrutura de pastas** imediatamente, eu faço agora: listarei a árvore de pastas e os arquivos iniciais (ex.: `app/`, `components/`, `lib/supabase.ts`, `schemas/`, etc.) e depois seguindo para o schema do banco.
+
+Fique à vontade para revisar os wireframes acima no conteúdo do documento e dizer se quer ajustes visuais/funcionais — ou posso já partir para a estrutura de pastas.
